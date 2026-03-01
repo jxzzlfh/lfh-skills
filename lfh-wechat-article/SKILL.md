@@ -238,25 +238,24 @@ Write-Host "配图[N] CDN: $imgCdnUrl"
 
 执行渲染前，**先阅读文章正文**，依据以下决策矩阵选出最匹配的 `markdownStyle` 和 `codeTheme`，然后将所选值填入 6.2 的渲染命令中。
 
-**决策矩阵（按优先级从高到低匹配，命中第一条即止）**：
+**决策矩阵（按优先级从高到低匹配，命中第一条即止；越具体的条件越靠前，最偏好的风格作为兜底）**：
+
+> **风格偏好排序**（1 最爱 → 8 最窄）：① Sketch ② Playful Geometric ③ Blueprint ④ Neo-Brutalism ⑤ ayu-light ⑥ GreenSimple ⑦ Retro ⑧ Terminal
 
 | 判断条件（正文特征） | markdownStyle | codeTheme | 适用说明 |
 |---|---|---|---|
-| 含大量代码块 / 命令行 / 技术命令，且风格硬核极客 | `terminal` | `tokyo-night-dark` | 程序员向、开发工具类 |
-| 科技 / AI / 编程干货，风格专业严谨，代码块中等 | `professional` | `tokyo-night-dark` | 技术科普、产品评测 |
-| 科技 / AI / 编程干货，风格活泼有设计感 | `blueprint` | `catppuccin-mocha` | 科技感强的可视化风格 |
-| 职场 / 商业 / 管理 / 效率工具 | `professional` | `catppuccin-latte` | 浅色主题显商务感 |
-| 社会评论 / 深度观点 / 批判性内容 | `neo-brutalism` | `panda-syntax-dark` | 视觉冲击大，观点鲜明 |
-| 新闻资讯 / 事件报道 / 时事解读 | `newsprint` | `kimbie-dark` | 报纸质感，可信度高 |
-| 生活方式 / 美食 / 旅行 / 自然 | `botanical` | `rose-pine-dawn` | 柔和自然，浅色温馨 |
-| 情感 / 心理 / 治愈 / 人生感悟 | `organic` | `rose-pine-dawn` | 有机温暖，亲近感强 |
+| 含大量代码块 / 命令行 / 技术命令，硬核极客风 | `terminal` | `tokyo-night-dark` | 程序员向、开发工具类 |
 | 历史 / 文化 / 传统 / 文学 | `retro` | `kimbie-dark` | 复古人文气质 |
-| 创意 / 设计 / 艺术 / 潮流 | `playful-geometric` | `panda-syntax-light` | 活泼几何，年轻感 |
-| 极简 / 禅意 / 冥想 / 哲思 | `sketch` | `paraiso-light` | 素描留白，意境感 |
-| 节日 / 热点 / 娱乐 / 造梗 | `maximalism` | `catppuccin-frappe` | 热闹丰富，视觉抓眼 |
-| 以上均不明确匹配（通用兜底） | `ayu-light` | `kimbie-light` | 清新淡雅，适配所有场景 |
+| 生活方式 / 美食 / 旅行 / 自然 | `green-simple` | `rose-pine-dawn` | 绿意清新，自然亲切 |
+| 职场 / 商业 / 管理 / 新闻资讯 | `ayu-light` | `catppuccin-latte` | 清新淡雅，专业百搭 |
+| 社会评论 / 深度观点 / 批判性内容 | `neo-brutalism` | `panda-syntax-dark` | 视觉冲击大，观点鲜明 |
+| 科技 / AI / 编程干货（代码块中等） | `blueprint` | `catppuccin-mocha` | 蓝图风格，科技设计感 |
+| 创意 / 设计 / 艺术 / 潮流 / 节日 / 娱乐 / 造梗 | `playful-geometric` | `panda-syntax-light` | 活泼几何，年轻感 |
+| 情感 / 心理 / 治愈 / 人生感悟 | `sketch` | `paraiso-light` | 素描留白，柔和意境 |
+| 极简 / 禅意 / 冥想 / 哲思 | `sketch` | `paraiso-light` | 手绘质感，意境留白 |
+| 以上均不明确匹配（通用兜底） | `sketch` | `paraiso-light` | 最偏好的百搭风格 |
 
-> **决策时同时考虑**：①文章主题领域 ②写作风格基调（严肃/活泼/温暖/犀利）③代码块数量（多→偏深色 codeTheme，无→可选浅色）
+> **决策时同时考虑**：①文章主题领域 ②写作风格基调（严肃/活泼/温暖/犀利）③代码块数量（多→偏深色 codeTheme，无→可选浅色）④当多个风格均可匹配时，优先选择偏好排序靠前的风格
 
 #### 6.2 渲染命令
 
