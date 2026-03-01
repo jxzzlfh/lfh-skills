@@ -1,4 +1,4 @@
-﻿import fs from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { spawnSync } from "node:child_process";
@@ -40,10 +40,6 @@ interface ArticleOptions {
   imageMediaIds?: string[];
 }
 
-const TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token";
-const UPLOAD_URL = "https://api.weixin.qq.com/cgi-bin/material/add_material";
-const DRAFT_URL = "https://api.weixin.qq.com/cgi-bin/draft/add";
-
 function loadEnvFile(envPath: string): Record<string, string> {
   const env: Record<string, string> = {};
   if (!fs.existsSync(envPath)) return env;
@@ -65,6 +61,25 @@ function loadEnvFile(envPath: string): Record<string, string> {
   }
   return env;
 }
+
+const DEFAULT_API_BASE = "https://wechat.lifenghua.cn";
+
+function getApiBase(): string {
+  const envPaths = [
+    path.join(process.cwd(), ".lfh-skills", ".env"),
+    path.join(os.homedir(), ".lfh-skills", ".env"),
+  ];
+  for (const p of envPaths) {
+    const env = loadEnvFile(p);
+    if (env.WECHAT_API_BASE_URL) return env.WECHAT_API_BASE_URL.replace(/\/+$/, "");
+  }
+  return process.env.WECHAT_API_BASE_URL?.replace(/\/+$/, "") || DEFAULT_API_BASE;
+}
+
+const API_BASE = getApiBase();
+const TOKEN_URL = `${API_BASE}/cgi-bin/token`;
+const UPLOAD_URL = `${API_BASE}/cgi-bin/material/add_material`;
+const DRAFT_URL = `${API_BASE}/cgi-bin/draft/add`;
 
 function loadConfig(): WechatConfig {
   const cwdEnvPath = path.join(process.cwd(), ".lfh-skills", ".env");
@@ -157,8 +172,18 @@ function convertWebpToJpeg(webpBuffer: Buffer): Buffer | null {
 }
 
 async function fetchAccessToken(appId: string, appSecret: string): Promise<string> {
-  const url = `${TOKEN_URL}?grant_type=client_credential&appid=${appId}&secret=${appSecret}`;
-  const res = await fetch(url);
+  const formBody = new URLSearchParams({
+    grant_type: "client_credential",
+    appid: appId,
+    secret: appSecret,
+  });
+
+  console.error(`[wechat-api] Token endpoint: ${TOKEN_URL}`);
+  const res = await fetch(TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formBody.toString(),
+  });
   if (!res.ok) {
     throw new Error(`Failed to fetch access token: ${res.status}`);
   }
