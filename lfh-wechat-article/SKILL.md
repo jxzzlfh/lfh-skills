@@ -1,6 +1,6 @@
-﻿---
+---
 name: lfh-wechat-article
-description: 读取当前目录下所有参考素材文档（txt、docx、xlsx、pptx、pdf、md等），按妙笔生花爆文引擎36种风格智能匹配创作微信公众号爆款文章，使用火山引擎doubao-seedream-5-0-260128自动生成封面图和正文配图，图片自动上传PicList图床获取CDN链接，调用bm.md渲染为微信HTML，最终通过微信API自动推送到公众号草稿箱。Use when user asks to "创作公众号文章", "写公众号爆款", "生成图文并茂的微信文章", "lfh-wechat-article", or wants to create illustrated WeChat articles from reference materials.
+description: 读取当前目录下所有参考素材文档（txt、docx、xlsx、pptx、pdf、md等），按妙笔生花爆文引擎36种风格智能匹配创作微信公众号爆款文章，使用火山引擎豆包自动生成封面图和正文配图，图片自动上传PicList图床获取CDN链接，调用bm.md渲染为微信HTML，最终通过微信API自动推送到公众号草稿箱。Use when user asks to "创作公众号文章", "写公众号爆款", "生成图文并茂的微信文章", "lfh-wechat-article", or wants to create illustrated WeChat articles from reference materials.
 ---
 
 # LFH WeChat Article Creator
@@ -130,7 +130,6 @@ npx -y bun "C:/Users/lifenghua/.cursor/skills/lfh-image-gen/scripts/main.ts" `
   --prompt "<封面prompt>" `
   --image $coverFile `
   --provider volcengine `
-  --model doubao-seedream-5-0-260128 `
   --size 2350x1000
 
 # 4. 上传到 PicList（PicGo-Server 协议，端口 36677）
@@ -184,7 +183,6 @@ npx -y bun "C:/Users/lifenghua/.cursor/skills/lfh-image-gen/scripts/main.ts" `
   --prompt "<配图prompt>" `
   --image $imgFile `
   --provider volcengine `
-  --model doubao-seedream-5-0-260128 `
   --size 1920x1080
 
 # 上传到 PicList
