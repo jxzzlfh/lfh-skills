@@ -49,17 +49,39 @@ export async function generateImage(
     );
   }
 
-  const size = args.size ? args.size : getSizeFromAspectRatio(args.aspectRatio, args.quality);
+  let size = args.size ? args.size : getSizeFromAspectRatio(args.aspectRatio, args.quality);
+
+  // seedream 4.x requires minimum 3,686,400 total pixels; scale up WxH if needed
+  const wxhMatch = size.match(/^(\d+)x(\d+)$/);
+  if (wxhMatch && !/seedream-5/.test(model)) {
+    let w = parseInt(wxhMatch[1]!);
+    let h = parseInt(wxhMatch[2]!);
+    const minPixels = 3_686_400;
+    if (w * h < minPixels) {
+      const scale = Math.ceil(Math.sqrt(minPixels / (w * h)) * 100) / 100;
+      w = Math.ceil(w * scale);
+      h = Math.ceil(h * scale);
+      // ensure even dimensions
+      if (w % 2 !== 0) w++;
+      if (h % 2 !== 0) h++;
+      console.log(`Scaled up to ${w}x${h} (${w * h} px) to meet minimum pixel requirement`);
+      size = `${w}x${h}`;
+    }
+  }
+
   const url = `${getBaseUrl()}/api/v3/images/generations`;
 
   // VolcEngine API uses OpenAI-compatible format
-  const body = {
+  // output_format is only supported by seedream 5.0+
+  const body: Record<string, unknown> = {
     model,
     prompt,
-    size, // "1K", "2K", "4K"
-    output_format: "png",
+    size,
     watermark: false,
   };
+  if (/seedream-5/.test(model)) {
+    body.output_format = "png";
+  }
 
   console.log(`Generating image with VolcEngine (${model})...`, { size });
 
