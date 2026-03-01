@@ -40,6 +40,59 @@ interface ArticleOptions {
   imageMediaIds?: string[];
 }
 
+interface PublishLogEntry {
+  title: string;
+  mediaId: string;
+  timestamp: string;
+  contentHash: string;
+}
+
+function computeContentHash(content: string): string {
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function getPublishLogPath(): string {
+  return path.join(process.cwd(), ".wechat-publish-log.json");
+}
+
+function readPublishLog(): PublishLogEntry[] {
+  const logPath = getPublishLogPath();
+  if (!fs.existsSync(logPath)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(logPath, "utf-8"));
+  } catch {
+    return [];
+  }
+}
+
+function writePublishLog(entries: PublishLogEntry[]): void {
+  const maxEntries = 50;
+  const trimmed = entries.slice(-maxEntries);
+  fs.writeFileSync(getPublishLogPath(), JSON.stringify(trimmed, null, 2), "utf-8");
+}
+
+function findDuplicate(title: string, contentHash: string): PublishLogEntry | undefined {
+  const log = readPublishLog();
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+  return log.find(entry =>
+    entry.title === title &&
+    entry.contentHash === contentHash &&
+    new Date(entry.timestamp).getTime() > oneHourAgo
+  );
+}
+
+function recordPublish(title: string, mediaId: string, contentHash: string): void {
+  const log = readPublishLog();
+  log.push({ title, mediaId, timestamp: new Date().toISOString(), contentHash });
+  writePublishLog(log);
+}
+
 function loadEnvFile(envPath: string): Record<string, string> {
   const env: Record<string, string> = {};
   if (!fs.existsSync(envPath)) return env;
@@ -469,6 +522,7 @@ Options:
   --cover <path>      Cover image path (local or URL)
   --dry-run           Parse and render only, don't publish
   --skip-image-upload Keep CDN image URLs as-is, skip re-uploading to WeChat
+  --force             Force publish even if duplicate detected (within 1 hour)
   --help              Show this help
 
 Frontmatter Fields (markdown):
@@ -511,6 +565,7 @@ interface CliArgs {
   cover?: string;
   dryRun: boolean;
   skipImageUpload: boolean;
+  force: boolean;
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -525,6 +580,7 @@ function parseArgs(argv: string[]): CliArgs {
     theme: "default",
     dryRun: false,
     skipImageUpload: false,
+    force: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -548,6 +604,8 @@ function parseArgs(argv: string[]): CliArgs {
       args.dryRun = true;
     } else if (arg === "--skip-image-upload") {
       args.skipImageUpload = true;
+    } else if (arg === "--force") {
+      args.force = true;
     } else if (arg.startsWith("--") && argv[i + 1] && !argv[i + 1]!.startsWith("-")) {
       i++;
     } else if (!arg.startsWith("-")) {
@@ -716,6 +774,23 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  const contentHash = computeContentHash(title + htmlContent.slice(0, 2000));
+  const duplicate = !args.force && findDuplicate(title, contentHash);
+  if (duplicate) {
+    console.error(`[wechat-api] Duplicate detected! Same title+content was published at ${duplicate.timestamp}, media_id: ${duplicate.mediaId}`);
+    console.error("[wechat-api] Skipping duplicate publish. Use --force to override.");
+    console.log(JSON.stringify({
+      success: true,
+      media_id: duplicate.mediaId,
+      title,
+      articleType: args.articleType,
+      skipped: true,
+      reason: "duplicate_detected",
+      previousPublishTime: duplicate.timestamp,
+    }, null, 2));
+    return;
+  }
+
   console.error("[wechat-api] Publishing to draft...");
   const result = await publishToDraft({
     title,
@@ -726,6 +801,8 @@ async function main(): Promise<void> {
     articleType: args.articleType,
     imageMediaIds: args.articleType === "newspic" ? allMediaIds : undefined,
   }, accessToken);
+
+  recordPublish(title, result.media_id || "", contentHash);
 
   console.log(JSON.stringify({
     success: true,
