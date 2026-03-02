@@ -40,7 +40,7 @@ Environment variables:
   DASHSCOPE_BASE_URL        Custom DashScope endpoint
   VOLCENGINE_BASE_URL       Custom VolcEngine endpoint
 
-Env file load order: CLI args > EXTEND.md > process.env > <cwd>/.baoyu-skills/.env > ~/.baoyu-skills/.env`);
+Env file load order: CLI args > EXTEND.md > process.env > <cwd>/.lfh-skills/.env > ~/.lfh-skills/.env`);
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -209,8 +209,8 @@ async function loadEnv(): Promise<void> {
   const skillDir = path.resolve(__dirname, "..", "..", "..");
 
   const skillEnv = await loadEnvFile(path.join(skillDir, ".env"));
-  const homeEnv = await loadEnvFile(path.join(home, ".baoyu-skills", ".env"));
-  const cwdEnv = await loadEnvFile(path.join(cwd, ".baoyu-skills", ".env"));
+  const homeEnv = await loadEnvFile(path.join(home, ".lfh-skills", ".env"));
+  const cwdEnv = await loadEnvFile(path.join(cwd, ".lfh-skills", ".env"));
 
   for (const [k, v] of Object.entries(skillEnv)) {
     if (!process.env[k]) process.env[k] = v;
@@ -276,8 +276,8 @@ async function loadExtendConfig(): Promise<Partial<ExtendConfig>> {
   const skillDir = path.resolve(__dirname, "..", "..", "..");
 
   const paths = [
-    path.join(cwd, ".baoyu-skills", "baoyu-image-gen", "EXTEND.md"),
-    path.join(home, ".baoyu-skills", "baoyu-image-gen", "EXTEND.md"),
+    path.join(cwd, ".lfh-skills", "lfh-image-gen", "EXTEND.md"),
+    path.join(home, ".lfh-skills", "lfh-image-gen", "EXTEND.md"),
     path.join(skillDir, "EXTEND.md"),
   ];
 
@@ -361,7 +361,7 @@ function detectProvider(args: CliArgs): Provider {
 
   throw new Error(
     "No API key found. Set GOOGLE_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY, DASHSCOPE_API_KEY, or VOLCENGINE_API_KEY.\n" +
-      "Create ~/.baoyu-skills/.env or <cwd>/.baoyu-skills/.env with your keys."
+      "Create ~/.lfh-skills/.env or <cwd>/.lfh-skills/.env with your keys."
   );
 }
 
